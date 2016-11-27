@@ -24,10 +24,16 @@ int main(int argc, char **argv)
 
 	RRP::Translator t("test");
 	std::ifstream f;
-	f.open(argv[1], std::ios::binary | std::ios::in);
+	char * filename = argv[1];
+	f.open(filename, std::ios::binary | std::ios::in);
+	if(!f.is_open())
+	{
+		std::cout << "Error: Could not open " << filename << std::endl;
+		return 0;
+	}
 	try {
 		t.process_file(f);
-		t.output_bitcode("test");
+		t.output_bitcode("rrpout");
 	} catch (RRP::Translator::Exception e) {
 		std::cout << "Exception while processing file." << std::endl;
 		std::cout << "Encountered " << RRP::Translator::exceptText[std::get<0>(e)];
