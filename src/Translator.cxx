@@ -31,16 +31,21 @@ namespace RRP
 		_op = nullptr;
 
 		llvm::Type * argsWrite[] = { llvm::IntegerType::getInt16Ty(_llvmContext), llvm::IntegerType::getInt8Ty(_llvmContext) };
+		llvm::Type * argsWriteAssoc[] = { llvm::IntegerType::getInt16Ty(_llvmContext), llvm::IntegerType::getInt8PtrTy(_llvmContext) };
 		llvm::Type * argsRead[] = { llvm::IntegerType::getInt16Ty(_llvmContext) };
-		llvm::Type * argsExit[] = { llvm::IntegerType::getInt32Ty(_llvmContext) };
+		llvm::Type * argsReadAssoc[] = { llvm::IntegerType::getInt16Ty(_llvmContext) };
 
 		auto writeType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsWrite, 2), false);
+		auto writeAssocType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsWriteAssoc, 2), false);
 		auto readType = llvm::FunctionType::get(llvm::FunctionType::getInt8Ty(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsRead, 1), false);
-		auto exitType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsExit, 1), false);
+		auto readAssocType = llvm::FunctionType::get(llvm::FunctionType::getInt8PtrTy(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsRead, 1), false);
+		auto exitType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), { }, false);
 		auto startType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), { }, false);
 
 		_memWrite = llvm::Function::Create(writeType, llvm::Function::ExternalLinkage, "rrpMemWrite", _mod.get());
+		_memWriteAssoc = llvm::Function::Create(writeAssocType, llvm::Function::ExternalLinkage, "rrpMemWriteAssoc", _mod.get());
 		_memRead = llvm::Function::Create(readType, llvm::Function::ExternalLinkage, "rrpMemRead", _mod.get());
+		_memReadAssoc = llvm::Function::Create(readAssocType, llvm::Function::ExternalLinkage, "rrpMemReadAssoc", _mod.get());
 		_exit = llvm::Function::Create(exitType, llvm::Function::ExternalLinkage, "rrpExit", _mod.get());
 		_start = llvm::Function::Create(startType, llvm::Function::ExternalLinkage, "rrpInit", _mod.get());
 		
@@ -76,19 +81,32 @@ namespace RRP
 	void Translator::memory_write(llvm::Value *&addr, llvm::Value *&val)
 	{
 		llvm::Value * argsWrite[] = { addr, val };
-		_irBuilder.CreateCall(_memWrite, llvm::ArrayRef<llvm::Value *>(argsWrite, 2), "");
+		_irBuilder.CreateCall(_memWrite, llvm::ArrayRef<llvm::Value *>(argsWrite, 2));
+	}
+
+	void Translator::memory_read_association(llvm::Value *&addr, llvm::Value *&valPtr)
+	{
+		llvm::Value * argsReadAssoc[] = { addr };
+		valPtr = _irBuilder.CreateCall(_memReadAssoc, llvm::ArrayRef<llvm::Value *>(argsReadAssoc, 1));
+	}
+
+
+	void Translator::memory_write_association(llvm::Value *&addr, llvm::Value *&valPtr)
+	{
+		llvm::Value * argsWriteAssoc[] = { addr, valPtr };
+		_irBuilder.CreateCall(_memWriteAssoc, llvm::ArrayRef<llvm::Value *>(argsWriteAssoc, 2));
 	}
 
 	void Translator::output_bitcode(std::string const &name)
 	{
-		llvm::legacy::FunctionPassManager fpm(_mod.get());
-		fpm.add(llvm::createPromoteMemoryToRegisterPass());
-		fpm.add(llvm::createDeadCodeEliminationPass());
-		fpm.run(*_main);
+		//llvm::legacy::FunctionPassManager fpm(_mod.get());
+		//fpm.add(llvm::createPromoteMemoryToRegisterPass());
+		//fpm.add(llvm::createDeadCodeEliminationPass());
+		//fpm.run(*_main);
 
-		//llvm::verifyFunction(*_main);
+		llvm::verifyFunction(*_main);
 
-		//_mod.get()->dump();
+		_mod.get()->dump();
 
 		std::error_code ec;
 		llvm::raw_fd_ostream os(name, ec, llvm::sys::fs::OpenFlags::F_None);
@@ -133,7 +151,7 @@ namespace RRP
 		while(i != buffer.end())
 		{
 			//std::cout << "Beginning instruction" << std::endl;
-			if(_needsBr && std::get<0>(*i) != "")
+			if(_needsBr && std::get<0>(*i) != "")	//temporary hack
 			{
 				std::string bbname = std::get<0>(*i);
 				//std::map<std::string, llvm::BasicBlock *>::iterator v = _bbMap.find(bbname);

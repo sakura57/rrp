@@ -93,6 +93,8 @@ namespace RRP
 		std::array<llvm::Value *, Flag::MAX> _flag;
 		llvm::Function * _memWrite;
 		llvm::Function * _memRead;
+		llvm::Function * _memWriteAssoc;
+		llvm::Function * _memReadAssoc;
 		llvm::Function * _exit;
 		llvm::Function * _start;
 		bool _immRead = false;
@@ -105,6 +107,8 @@ namespace RRP
 		static constexpr word_t starting_addr(void);
 		void memory_read(llvm::Value *&, llvm::Value *&);
 		void memory_write(llvm::Value *&, llvm::Value *&);
+		void memory_read_association(llvm::Value *&, llvm::Value *&);
+		void memory_write_association(llvm::Value *&, llvm::Value *&);
 		inline void _set_z(llvm::Value *&);
 		inline void _set_s(llvm::Value *&);
 		inline void _build_flags(llvm::Value *&);
@@ -154,6 +158,7 @@ namespace RRP
 		void _op_CPY(std::vector<IData> &, std::vector<IData>::iterator &, AddressModeCallback &);
 		void _op_CPX(std::vector<IData> &, std::vector<IData>::iterator &, AddressModeCallback &);
 
+		void _pp_mklb0(std::vector<IData> &, std::vector<IData>::iterator &);
 		void _pp_mklb1(std::vector<IData> &, std::vector<IData>::iterator &);
 		void _pp_mklb2(std::vector<IData> &, std::vector<IData>::iterator &);
 

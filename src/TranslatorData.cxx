@@ -209,7 +209,7 @@ namespace RRP {
 		//	58							59				5A				5B				5C							5D				5E				5F
 			nullptr,					nullptr,		nullptr,		nullptr,		nullptr,					nullptr,		nullptr,		nullptr,
 		//	60							61				62				63				64							65				66				67
-			nullptr,					nullptr,		nullptr,		nullptr,		nullptr,					nullptr,		nullptr,		nullptr,
+			&Translator::_pp_mklb0,		nullptr,		nullptr,		nullptr,		nullptr,					nullptr,		nullptr,		nullptr,
 		//	68							69				6A				6B				6C							6D				6E				6F
 			nullptr,					nullptr,		nullptr,		nullptr,		nullptr,					nullptr,		nullptr,		nullptr,
 		//	70							71				72				73				74							75				76				77

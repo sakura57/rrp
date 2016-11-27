@@ -10,6 +10,42 @@
 
 namespace RRP
 {
+	//Requires 8-bit value input
+	inline void Translator::_build_flags(llvm::Value *&val)
+	{
+		val = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0);
+		for(size_t i=0;i<Flag::MAX;++i)
+		{
+			llvm::Value * current = _irBuilder.CreateLoad(_flag[i]);
+			llvm::Value * current_zext = _irBuilder.CreateZExt(current, llvm::IntegerType::getInt8Ty(_llvmContext));
+			llvm::Value * current_shl = _irBuilder.CreateShl(current_zext, i);
+			val = _irBuilder.CreateOr(val, current_shl);
+		}
+	}
+
+	//Requires 8-bit value input
+	inline void Translator::_decompose_flags(llvm::Value *&val)
+	{
+		for(size_t i=0;i<Flag::MAX;++i)
+		{
+			llvm::Value * current_ashr = _irBuilder.CreateAShr(val, i);
+			llvm::Value * current_trunc = _irBuilder.CreateTrunc(current_ashr, llvm::IntegerType::getInt1Ty(_llvmContext));
+			_irBuilder.CreateStore(current_trunc, _flag[i]);
+		}
+	}
+
+	inline void Translator::_set_z(llvm::Value *&val)
+	{
+		llvm::Value * zero = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0);
+		_irBuilder.CreateStore(_irBuilder.CreateICmpEQ(val, zero), _flag[Flag::Z]);
+	}
+
+	inline void Translator::_set_s(llvm::Value *&val)
+	{
+		llvm::Value * neg = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x80);
+		_irBuilder.CreateStore(_irBuilder.CreateICmpEQ(neg, _irBuilder.CreateAnd(val, neg)), _flag[Flag::S]);
+	}
+
 	//implemented
 	llvm::Value * Translator::_mode_read_indirect_zeropage_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
@@ -249,7 +285,7 @@ namespace RRP
 	//implemented
 	llvm::Value * Translator::_mode_write_absolute(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "write_abs" << std::endl;
+		std::cout << "write_abs" << std::endl;
 		if (!_immRead)
 		{
 			if (++i == buf.end())
@@ -317,7 +353,7 @@ namespace RRP
 	//implemented
 	llvm::Value * Translator::_mode_write_absolute_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "write_abs_indxxmode" << std::endl;
+		std::cout << "write_abs_indxxmode" << std::endl;
 		if (!_immRead)
 		{
 			if (++i == buf.end())
@@ -342,7 +378,7 @@ namespace RRP
 	//implemented
 	llvm::Value * Translator::_mode_write_absolute_indexedY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "abs_indxymode" << std::endl;
+		std::cout << "abs_indxymode" << std::endl;
 		if (!_immRead)
 		{
 			if (++i == buf.end())
@@ -364,46 +400,10 @@ namespace RRP
 		return nullptr;
 	}
 
-	//Requires 8-bit value input
-	inline void Translator::_build_flags(llvm::Value *&val)
-	{
-		val = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0);
-		for(size_t i=0;i<Flag::MAX;++i)
-		{
-			llvm::Value * current = _irBuilder.CreateLoad(_flag[i]);
-			llvm::Value * current_zext = _irBuilder.CreateZExt(current, llvm::IntegerType::getInt8Ty(_llvmContext));
-			llvm::Value * current_shl = _irBuilder.CreateShl(current_zext, i);
-			val = _irBuilder.CreateOr(val, current_shl);
-		}
-	}
-
-	//Requires 8-bit value input
-	inline void Translator::_decompose_flags(llvm::Value *&val)
-	{
-		for(size_t i=0;i<Flag::MAX;++i)
-		{
-			llvm::Value * current_ashr = _irBuilder.CreateAShr(val, i);
-			llvm::Value * current_trunc = _irBuilder.CreateTrunc(current_ashr, llvm::IntegerType::getInt1Ty(_llvmContext));
-			_irBuilder.CreateStore(current_trunc, _flag[i]);
-		}
-	}
-
-	inline void Translator::_set_z(llvm::Value *&val)
-	{
-		llvm::Value * zero = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0);
-		_irBuilder.CreateStore(_irBuilder.CreateICmpEQ(val, zero), _flag[Flag::Z]);
-	}
-
-	inline void Translator::_set_s(llvm::Value *&val)
-	{
-		llvm::Value * neg = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x80);
-		_irBuilder.CreateStore(_irBuilder.CreateICmpEQ(neg, _irBuilder.CreateAnd(val, neg)), _flag[Flag::S]);
-	}
-
 	//implemented
 	void Translator::_op_ORA(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "ORA" << std::endl;
+		std::cout << "ORA" << std::endl;
 		_op = _irBuilder.CreateOr((std::get<0>(cb))(this, buf, i), _irBuilder.CreateLoad(_A));
 		_set_z(_op);
 		_set_s(_op);
@@ -413,7 +413,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_AND(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "AND" << std::endl;
+		std::cout << "AND" << std::endl;
 		_op = _irBuilder.CreateAnd((std::get<0>(cb))(this, buf, i), _irBuilder.CreateLoad(_A));
 		_set_z(_op);
 		_set_s(_op);
@@ -423,7 +423,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_EOR(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "EOR" << std::endl;
+		std::cout << "EOR" << std::endl;
 		_op = _irBuilder.CreateXor((std::get<0>(cb))(this, buf, i), _irBuilder.CreateLoad(_A));
 		_set_z(_op);
 		_set_s(_op);
@@ -433,7 +433,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_ADC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "ADC" << std::endl;
+		std::cout << "ADC" << std::endl;
 		auto byte = (std::get<0>(cb))(this, buf, i);
 		auto accum = _irBuilder.CreateLoad(_A);
 		_op = _irBuilder.CreateZExt(byte, llvm::IntegerType::getInt16Ty(_llvmContext));
@@ -456,7 +456,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_STA(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "STA" << std::endl;
+		std::cout << "STA" << std::endl;
 		_op = _irBuilder.CreateLoad(_A, "");
 		(std::get<1>(cb))(this, buf, i);	//execute write callback
 	}
@@ -464,7 +464,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_LDA(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "LDA" << std::endl;
+		std::cout << "LDA" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);	//execute read callback
 		_set_z(_op);
 		_set_s(_op);
@@ -474,7 +474,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_CMP(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "CMP" << std::endl;
+		std::cout << "CMP" << std::endl;
 		auto byte = (std::get<0>(cb))(this, buf, i);
 		auto accum = _irBuilder.CreateLoad(_A);
 		_op = _irBuilder.CreateZExt(byte, llvm::IntegerType::getInt16Ty(_llvmContext));
@@ -496,7 +496,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_SBC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "SBC" << std::endl;
+		std::cout << "SBC" << std::endl;
 		auto byte = (std::get<0>(cb))(this, buf, i);
 		auto accum = _irBuilder.CreateLoad(_A);
 		_op = _irBuilder.CreateZExt(byte, llvm::IntegerType::getInt16Ty(_llvmContext));
@@ -519,7 +519,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_ASL(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "ASL" << std::endl;
+		std::cout << "ASL" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);
 		llvm::Value * neg = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x80);
 		auto k = _irBuilder.CreateICmpEQ(neg, _irBuilder.CreateAnd(_op, neg));
@@ -533,7 +533,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_ROL(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "ROL" << std::endl;
+		std::cout << "ROL" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);
 		llvm::Value * neg = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x80);
 		auto k = _irBuilder.CreateICmpEQ(neg, _irBuilder.CreateAnd(_op, neg));
@@ -548,7 +548,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_LSR(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "LSR" << std::endl;
+		std::cout << "LSR" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);
 		llvm::Value * neg = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1);
 		auto k = _irBuilder.CreateICmpEQ(neg, _irBuilder.CreateAnd(_op, neg));
@@ -562,7 +562,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_ROR(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "ROR" << std::endl;
+		std::cout << "ROR" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);
 		llvm::Value * neg = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1);
 		auto k = _irBuilder.CreateICmpEQ(neg, _irBuilder.CreateAnd(_op, neg));
@@ -578,7 +578,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_STX(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "STX" << std::endl;
+		std::cout << "STX" << std::endl;
 		_op = _irBuilder.CreateLoad(_X, "");
 		(std::get<1>(cb))(this, buf, i);	//execute write callback
 	}
@@ -586,7 +586,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_LDX(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "LDX" << std::endl;
+		std::cout << "LDX" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);	//execute read callback
 		_set_z(_op);
 		_set_s(_op);
@@ -596,7 +596,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_DEC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "DEC" << std::endl;
+		std::cout << "DEC" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);	//execute read callback
 		_op = _irBuilder.CreateSub(_op, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1));
 		_set_z(_op);
@@ -607,7 +607,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_INC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "INC" << std::endl;
+		std::cout << "INC" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);	//execute read callback
 		_op = _irBuilder.CreateAdd(_op, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1));
 		_set_z(_op);
@@ -618,7 +618,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_BIT(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "BIT" << std::endl;
+		std::cout << "BIT" << std::endl;
 		_op = _irBuilder.CreateAnd((std::get<0>(cb))(this, buf, i), _irBuilder.CreateLoad(_A));
 		_set_z(_op);
 		_set_s(_op);
@@ -627,7 +627,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_STY(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "STY" << std::endl;
+		std::cout << "STY" << std::endl;
 		_op = _irBuilder.CreateLoad(_Y, "");
 		(std::get<1>(cb))(this, buf, i);	//execute write callback
 	}
@@ -635,7 +635,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_LDY(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "LDY" << std::endl;
+		std::cout << "LDY" << std::endl;
 		_op = (std::get<0>(cb))(this, buf, i);	//execute read callback
 		_set_z(_op);
 		_set_s(_op);
@@ -645,7 +645,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_CPY(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "CPY" << std::endl;
+		std::cout << "CPY" << std::endl;
 		auto byte = (std::get<0>(cb))(this, buf, i);
 		auto accum = _irBuilder.CreateLoad(_Y);
 		_op = _irBuilder.CreateZExt(byte, llvm::IntegerType::getInt16Ty(_llvmContext));
@@ -667,7 +667,7 @@ namespace RRP
 	//implemented
 	void Translator::_op_CPX(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
-		//std::cout << "CPX" << std::endl;
+		std::cout << "CPX" << std::endl;
 		auto byte = (std::get<0>(cb))(this, buf, i);
 		auto accum = _irBuilder.CreateLoad(_X);
 		_op = _irBuilder.CreateZExt(byte, llvm::IntegerType::getInt16Ty(_llvmContext));
@@ -684,6 +684,24 @@ namespace RRP
 		_irBuilder.CreateStore(_irBuilder.CreateAnd(a, b), _flag[Flag::V]);
 		_set_z(_op);
 		_set_s(_op);
+	}
+
+	//implemented
+	void Translator::_pp_mklb0(std::vector<IData> &buf, std::vector<IData>::iterator &i)
+	{
+		//q is at addr of next function, k is a copy of q, begin has the orig
+		std::vector<IData>::iterator q(i + 1);
+
+		std::stringstream nextname("");
+		nextname << std::hex << (int)std::get<1>(*q);
+		std::string nextstr = "A" + nextname.str();
+
+		std::get<0>(*q) = nextstr;
+
+		if (_bbMap.find(nextstr) == _bbMap.end())
+		{
+			_bbMap[nextstr] = llvm::BasicBlock::Create(_llvmContext, nextstr);
+		}
 	}
 
 	//implemented
@@ -756,7 +774,7 @@ namespace RRP
 
 	void Translator::_uu_TXA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "TXA" << std::endl;
+		std::cout << "TXA" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_X);
 		_set_s(src);
 		_set_z(src);
@@ -765,7 +783,7 @@ namespace RRP
 
 	void Translator::_uu_TAX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "TAX" << std::endl;
+		std::cout << "TAX" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_A);
 		_set_s(src);
 		_set_z(src);
@@ -774,7 +792,7 @@ namespace RRP
 
 	void Translator::_uu_TYA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "TYA" << std::endl;
+		std::cout << "TYA" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_Y);
 		_set_s(src);
 		_set_z(src);
@@ -783,7 +801,7 @@ namespace RRP
 
 	void Translator::_uu_TAY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "TAY" << std::endl;
+		std::cout << "TAY" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_A);
 		_set_s(src);
 		_set_z(src);
@@ -793,7 +811,7 @@ namespace RRP
 	void Translator::_uu_TXS(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
-		//std::cout << "TXS" << std::endl;
+		std::cout << "TXS" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_X);
 		_irBuilder.CreateStore(src, _S);
 	}
@@ -801,7 +819,7 @@ namespace RRP
 	void Translator::_uu_TSX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
-		//std::cout << "TSX" << std::endl;
+		std::cout << "TSX" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_S);
 		_set_s(src);
 		_set_z(src);
@@ -811,20 +829,20 @@ namespace RRP
 	void Translator::_uu_NOP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//dummy instruction
-		//std::cout << "NOP" << std::endl;
+		std::cout << "NOP" << std::endl;
 	}
 
 	void Translator::_uu_PHP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
-		//std::cout << "PHP" << std::endl;
+		std::cout << "PHP" << std::endl;
 		llvm::Value * accum;
 		_build_flags(accum);
 		llvm::Value * stack = _irBuilder.CreateLoad(_S);
 		llvm::Value * stack_start = llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(_llvmContext), 0x100);
 		llvm::Value * stack_offset_zext = _irBuilder.CreateZExt(stack, llvm::IntegerType::getInt16Ty(_llvmContext));
 		llvm::Value * ptr = _irBuilder.CreateAdd(stack_start, stack_offset_zext);
-		memory_write(accum, ptr);
+		memory_write(ptr, accum);
 		llvm::Value * decremented_sp = _irBuilder.CreateSub(stack, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x1));
 		_irBuilder.CreateStore(decremented_sp, _S);
 	}
@@ -832,7 +850,7 @@ namespace RRP
 	void Translator::_uu_PLP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
-		//std::cout << "PLP" << std::endl;
+		std::cout << "PLP" << std::endl;
 		llvm::Value * stack = _irBuilder.CreateLoad(_S);
 		llvm::Value * incremented_sp = _irBuilder.CreateAdd(stack, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x1));
 		_irBuilder.CreateStore(incremented_sp, _S);
@@ -847,13 +865,13 @@ namespace RRP
 	void Translator::_uu_PHA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
-		//std::cout << "PHA" << std::endl;
+		std::cout << "PHA" << std::endl;
 		llvm::Value * accum = _irBuilder.CreateLoad(_A);
 		llvm::Value * stack = _irBuilder.CreateLoad(_S);
 		llvm::Value * stack_start = llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(_llvmContext), 0x100);
 		llvm::Value * stack_offset_zext = _irBuilder.CreateZExt(stack, llvm::IntegerType::getInt16Ty(_llvmContext));
 		llvm::Value * ptr = _irBuilder.CreateAdd(stack_start, stack_offset_zext);
-		memory_write(accum, ptr);
+		memory_write(ptr, accum);
 		llvm::Value * decremented_sp = _irBuilder.CreateSub(stack, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x1));
 		_irBuilder.CreateStore(decremented_sp, _S);
 	}
@@ -861,7 +879,7 @@ namespace RRP
 	void Translator::_uu_PLA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
-		//std::cout << "PLA" << std::endl;
+		std::cout << "PLA" << std::endl;
 		llvm::Value * stack = _irBuilder.CreateLoad(_S);
 		llvm::Value * incremented_sp = _irBuilder.CreateAdd(stack, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x1));
 		_irBuilder.CreateStore(incremented_sp, _S);
@@ -877,7 +895,7 @@ namespace RRP
 
 	void Translator::_uu_INX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "INX" << std::endl;
+		std::cout << "INX" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_X);
 		src = _irBuilder.CreateAdd(src, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1));
 		_set_s(src);
@@ -887,7 +905,7 @@ namespace RRP
 
 	void Translator::_uu_DEX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "DEX" << std::endl;
+		std::cout << "DEX" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_X);
 		src = _irBuilder.CreateSub(src, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1));
 		_set_s(src);
@@ -897,7 +915,7 @@ namespace RRP
 
 	void Translator::_uu_INY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "INY" << std::endl;
+		std::cout << "INY" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_Y);
 		src = _irBuilder.CreateAdd(src, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1));
 		_set_s(src);
@@ -907,7 +925,7 @@ namespace RRP
 
 	void Translator::_uu_DEY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "DEY" << std::endl;
+		std::cout << "DEY" << std::endl;
 		llvm::Value * src = _irBuilder.CreateLoad(_Y);
 		src = _irBuilder.CreateSub(src, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 1));
 		_set_s(src);
@@ -917,79 +935,129 @@ namespace RRP
 
 	void Translator::_uu_SEC(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "SEC" << std::endl;
+		std::cout << "SEC" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::C]);
 	}
 
 	void Translator::_uu_CLC(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "CLC" << std::endl;
+		std::cout << "CLC" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::C]);
 	}
 
 	void Translator::_uu_SED(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "SED" << std::endl;
+		std::cout << "SED" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::D]);
 	}
 
 	void Translator::_uu_CLD(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "CLD" << std::endl;
+		std::cout << "CLD" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::D]);
 	}
 
 	void Translator::_uu_SEV(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "SEV" << std::endl;
+		std::cout << "SEV" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::V]);
 	}
 
 	void Translator::_uu_CLV(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "CLV" << std::endl;
+		std::cout << "CLV" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::V]);
 	}
 
 	void Translator::_uu_SEI(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "SEI" << std::endl;
+		std::cout << "SEI" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::I]);
 	}
 
 	void Translator::_uu_CLI(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "CLI" << std::endl;
+		std::cout << "CLI" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::I]);
 	}
 
 	void Translator::_uu_IJMP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "IJMP" << std::endl;
+		std::cout << "IJMP" << std::endl;
 		throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
 	}
 
 	void Translator::_uu_JSR(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "JSR" << std::endl;
-		throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
+		std::cout << "JSR" << std::endl;
+		//throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
+
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*i));
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(i + 3)));
+
+		++++i;
+		if (destBB != _bbMap.end() && nextBB != _bbMap.end())
+		{
+			llvm::Value * bbaddr = llvm::BlockAddress::get(_main, nextBB->second);
+
+			llvm::Value * stack = _irBuilder.CreateLoad(_S);
+			llvm::Value * stack_start = llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(_llvmContext), 0x100);
+			llvm::Value * stack_offset_zext = _irBuilder.CreateZExt(stack, llvm::IntegerType::getInt16Ty(_llvmContext));
+			llvm::Value * ptr = _irBuilder.CreateAdd(stack_start, stack_offset_zext);
+			memory_write_association(ptr, bbaddr);
+			llvm::Value * decremented_sp = _irBuilder.CreateSub(stack, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x2));
+			_irBuilder.CreateStore(decremented_sp, _S);
+			
+			_main->getBasicBlockList().push_back(_curBB);
+			_irBuilder.CreateBr(destBB->second);
+			_curBB = nextBB->second;
+			_irBuilder.SetInsertPoint(_curBB);
+			_needsBr = false;
+		}
+		else
+		{
+			throw Exception(ExceptionCode::NONEXISTANT_BRANCH, std::get<1>(*i));
+		}
 	}
 
 	void Translator::_uu_RTS(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "RTS" << std::endl;
-		throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
+		std::cout << "RTS" << std::endl;
+		//throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
+
+		llvm::Value * stack = _irBuilder.CreateLoad(_S);
+		llvm::Value * incremented_sp = _irBuilder.CreateAdd(stack, llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x2));
+		_irBuilder.CreateStore(incremented_sp, _S);
+		llvm::Value * stack_start = llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(_llvmContext), 0x100);
+		llvm::Value * stack_offset_zext = _irBuilder.CreateZExt(incremented_sp, llvm::IntegerType::getInt16Ty(_llvmContext));
+		llvm::Value * ptr = _irBuilder.CreateAdd(stack_start, stack_offset_zext);
+		llvm::Value * accum;
+
+		memory_read_association(ptr, accum);
+
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(i + 1)));
+
+		if(nextBB == _bbMap.end())
+		{
+			throw Exception(ExceptionCode::NONEXISTANT_BRANCH, std::get<1>(*i));
+		}
+
+		_main->getBasicBlockList().push_back(_curBB);
+		_irBuilder.CreateIndirectBr(accum, 10);
+		_curBB = nextBB->second;
+		_irBuilder.SetInsertPoint(_curBB);
+		_needsBr = false;
 	}
 
 	void Translator::_uu_RTI(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "RTI" << std::endl;
+		std::cout << "RTI" << std::endl;
 		throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
 	}
 
 	void Translator::_uu_bra(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "branch: ";
+		std::cout << "branch: ";
 		std::vector<IData>::iterator q(i);
 		byte_t op = std::get<2>(*(i++));
 		byte_t bit = (op >> 5) & 1;
@@ -999,19 +1067,19 @@ namespace RRP
 		{
 		case 0:
 			toTest = _flag[Flag::S];
-			//std::cout << "on S=" << (int)bit << std::endl;
+			std::cout << "on S=" << (int)bit << std::endl;
 			break;
 		case 1:
 			toTest = _flag[Flag::V];
-			//std::cout << "on V=" << (int)bit << std::endl;
+			std::cout << "on V=" << (int)bit << std::endl;
 			break;
 		case 2:
 			toTest = _flag[Flag::C];
-			//std::cout << "on C=" << (int)bit << std::endl;
+			std::cout << "on C=" << (int)bit << std::endl;
 			break;
 		case 3:
 			toTest = _flag[Flag::Z];
-			//std::cout << "on Z=" << (int)bit << std::endl;
+			std::cout << "on Z=" << (int)bit << std::endl;
 			break;
 		}
 		llvm::Value * cond = _irBuilder.CreateICmpEQ(_irBuilder.CreateLoad(toTest), llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, bit)));
@@ -1037,7 +1105,7 @@ namespace RRP
 
 	void Translator::_uu_jump(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		//std::cout << "JMP" << std::endl;
+		std::cout << "JMP" << std::endl;
 		//std::map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*i));
 		//std::map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(i + 3)));
 
