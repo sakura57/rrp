@@ -136,7 +136,8 @@ namespace RRP
 			if(_needsBr && std::get<0>(*i) != "")
 			{
 				std::string bbname = std::get<0>(*i);
-				std::map<std::string, llvm::BasicBlock *>::iterator v = _bbMap.find(bbname);
+				//std::map<std::string, llvm::BasicBlock *>::iterator v = _bbMap.find(bbname);
+				spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator v = _bbMap.find(bbname);
 				if(v == _bbMap.end())
 				{
 					throw Exception(ExceptionCode::UNKNOWN, std::get<1>(*i));

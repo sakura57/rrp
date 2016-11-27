@@ -6,7 +6,8 @@
 
 #include <algorithm>
 #include <tuple>
-#include <map>
+//#include <map>
+#include "sparsepp.h"
 #include <memory>
 #include <string>
 #include <sstream>
@@ -75,7 +76,8 @@ namespace RRP
 
 		bool _needsBr = true;
 
-		std::map<std::string, llvm::BasicBlock *> _bbMap;
+		//std::map<std::string, llvm::BasicBlock *> _bbMap;
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *> _bbMap;
 
 		llvm::LLVMContext _llvmContext;
 		llvm::IRBuilder<> _irBuilder;

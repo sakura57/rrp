@@ -1015,8 +1015,12 @@ namespace RRP
 			break;
 		}
 		llvm::Value * cond = _irBuilder.CreateICmpEQ(_irBuilder.CreateLoad(toTest), llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, bit)));
-		std::map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*q));
-		std::map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(q+2)));
+
+		//std::map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*q));
+		//std::map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(q+2)));
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*q));
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(q+2)));
+
 		if(destBB != _bbMap.end() && nextBB != _bbMap.end())
 		{
 			_main->getBasicBlockList().push_back(_curBB);
@@ -1034,8 +1038,12 @@ namespace RRP
 	void Translator::_uu_jump(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//std::cout << "JMP" << std::endl;
-		std::map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*i));
-		std::map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(i + 3)));
+		//std::map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*i));
+		//std::map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(i + 3)));
+
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator destBB = _bbMap.find(std::get<3>(*i));
+		spp::sparse_hash_map<std::string, llvm::BasicBlock *>::iterator nextBB = _bbMap.find(std::get<0>(*(i + 3)));
+
 		++++i;
 		if (destBB != _bbMap.end() && nextBB != _bbMap.end())
 		{
