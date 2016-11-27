@@ -92,6 +92,7 @@ namespace RRP
 		llvm::Function * _memWrite;
 		llvm::Function * _memRead;
 		llvm::Function * _exit;
+		llvm::Function * _start;
 		bool _immRead = false;
 		word_t _imm = 0;
 

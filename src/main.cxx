@@ -4,8 +4,6 @@
 	Defines the entry-point of the application, argument parsing, and initialization.
 */
 
-#define RRP_DEBUG_BUILD
-
 #include <iostream>
 #include <fstream>
 #include "Translator.hxx"
@@ -33,7 +31,7 @@ int main(int argc, char **argv)
 	}
 	try {
 		t.process_file(f);
-		t.output_bitcode("rrpout");
+		t.output_bitcode("rrpout.bc");
 	} catch (RRP::Translator::Exception e) {
 		std::cout << "Exception while processing file." << std::endl;
 		std::cout << "Encountered " << RRP::Translator::exceptText[std::get<0>(e)];

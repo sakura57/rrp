@@ -37,14 +37,17 @@ namespace RRP
 		auto writeType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsWrite, 2), false);
 		auto readType = llvm::FunctionType::get(llvm::FunctionType::getInt8Ty(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsRead, 1), false);
 		auto exitType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), llvm::ArrayRef<llvm::Type *>(argsExit, 1), false);
+		auto startType = llvm::FunctionType::get(llvm::FunctionType::getVoidTy(_llvmContext), { }, false);
 
 		_memWrite = llvm::Function::Create(writeType, llvm::Function::ExternalLinkage, "rrpMemWrite", _mod.get());
 		_memRead = llvm::Function::Create(readType, llvm::Function::ExternalLinkage, "rrpMemRead", _mod.get());
 		_exit = llvm::Function::Create(exitType, llvm::Function::ExternalLinkage, "rrpExit", _mod.get());
+		_start = llvm::Function::Create(startType, llvm::Function::ExternalLinkage, "rrpInit", _mod.get());
 		
 		_memWrite->setCallingConv(llvm::CallingConv::C);
 		_memRead->setCallingConv(llvm::CallingConv::C);
 		_exit->setCallingConv(llvm::CallingConv::C);
+		_start->setCallingConv(llvm::CallingConv::C);
 
 		for(llvm::Value *&v : _flag)
 		{
@@ -55,6 +58,8 @@ namespace RRP
 		_irBuilder.CreateStore(llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0xFF), _S);
 
 		_bbMap["A8000"] = _curBB;
+
+		_irBuilder.CreateCall(_start);
 	}
 
 	constexpr word_t Translator::starting_addr(void)
