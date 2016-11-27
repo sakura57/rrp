@@ -15,7 +15,9 @@
 #include <stdlib.h>
 
 void rrpMemWrite(uint16_t, uint8_t);
+void rrpMemWriteAssoc(uint16_t, uint8_t *);
 uint8_t rrpMemRead(uint16_t);
+uint8_t * rrpMemReadAssoc(uint16_t);
 
 void rrpInit(void);
 void rrpExit(void);
