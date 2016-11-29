@@ -700,7 +700,8 @@ namespace RRP
 
 		if (_bbMap.find(nextstr) == _bbMap.end())
 		{
-			_bbMap[nextstr] = llvm::BasicBlock::Create(_llvmContext, nextstr);
+            auto block = llvm::BasicBlock::Create(_llvmContext, nextstr);
+			_bbMap[nextstr] = block;
 		}
 	}
 
@@ -768,7 +769,16 @@ namespace RRP
 		}
 		if (_bbMap.find(nextstr) == _bbMap.end())
 		{
-			_bbMap[nextstr] = llvm::BasicBlock::Create(_llvmContext, nextstr);
+            //since this preprocessor callback might be from JSR,
+            //we need to add the created basic block to the list of possible
+            //RTS destinations.
+            auto block = llvm::BasicBlock::Create(_llvmContext, nextstr);
+            if(std::get<2>(*begin) == 0x20) //0x20 = JSR
+            {
+                _indBrDests.push_back(block);
+            }
+			_bbMap[nextstr] = block;
+			//_bbMap[nextstr] = llvm::BasicBlock::Create(_llvmContext, nextstr);
 		}
 	}
 
@@ -1043,7 +1053,11 @@ namespace RRP
 		}
 
 		_main->getBasicBlockList().push_back(_curBB);
-		_irBuilder.CreateIndirectBr(accum, 10);
+		llvm::IndirectBrInst * brInst = _irBuilder.CreateIndirectBr(accum, _indBrDests.size());
+        for(auto dest : _indBrDests)
+        {
+            brInst->addDestination(dest);
+        }
 		_curBB = nextBB->second;
 		_irBuilder.SetInsertPoint(_curBB);
 		_needsBr = false;

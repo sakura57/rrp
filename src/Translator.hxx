@@ -91,6 +91,7 @@ namespace RRP
 		llvm::Value * _op;
 		llvm::Value * _memAlloc;
 		std::array<llvm::Value *, Flag::MAX> _flag;
+        std::vector<llvm::BasicBlock *> _indBrDests;
 		llvm::Function * _memWrite;
 		llvm::Function * _memRead;
 		llvm::Function * _memWriteAssoc;
