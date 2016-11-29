@@ -285,7 +285,7 @@ namespace RRP
 	//implemented
 	llvm::Value * Translator::_mode_write_absolute(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		std::cout << "write_abs" << std::endl;
+		//std::cout << "write_abs" << std::endl;
 		if (!_immRead)
 		{
 			if (++i == buf.end())
@@ -353,7 +353,7 @@ namespace RRP
 	//implemented
 	llvm::Value * Translator::_mode_write_absolute_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
-		std::cout << "write_abs_indxxmode" << std::endl;
+		//std::cout << "write_abs_indxxmode" << std::endl;
 		if (!_immRead)
 		{
 			if (++i == buf.end())

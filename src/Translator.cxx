@@ -99,10 +99,14 @@ namespace RRP
 
 	void Translator::output_bitcode(std::string const &name)
 	{
-		//llvm::legacy::FunctionPassManager fpm(_mod.get());
-		//fpm.add(llvm::createPromoteMemoryToRegisterPass());
-		//fpm.add(llvm::createDeadCodeEliminationPass());
-		//fpm.run(*_main);
+		llvm::legacy::FunctionPassManager fpm(_mod.get());
+		fpm.add(llvm::createPromoteMemoryToRegisterPass());
+        fpm.add(llvm::createInstructionCombiningPass());
+        fpm.add(llvm::createReassociatePass());
+        fpm.add(llvm::createCFGSimplificationPass());
+        fpm.add(llvm::createDeadCodeEliminationPass());
+        fpm.doInitialization();
+		fpm.run(*_main);
 
 		llvm::verifyFunction(*_main);
 
