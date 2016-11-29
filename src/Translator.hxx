@@ -34,6 +34,7 @@
 #include <llvm/Analysis/Passes.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Vectorize.h>
 #include "Defs.hxx"
 
 namespace RRP

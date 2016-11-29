@@ -104,6 +104,8 @@ namespace RRP
         fpm.add(llvm::createInstructionCombiningPass());
         fpm.add(llvm::createReassociatePass());
         fpm.add(llvm::createCFGSimplificationPass());
+        fpm.add(llvm::createBBVectorizePass());
+        fpm.add(llvm::createLoopVectorizePass());
         fpm.add(llvm::createDeadCodeEliminationPass());
         fpm.doInitialization();
 		fpm.run(*_main);
