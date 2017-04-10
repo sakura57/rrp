@@ -7,16 +7,46 @@
 #include <iostream>
 #include <fstream>
 #include "Translator.hxx"
+#include "ArgParse.hxx"
+
+void printValidSyntax(void)
+{
+    auto iter = ArgObject::archBegin();
+    auto archEnd = ArgObject::archEnd();
+    std::cout << "Possible arguments:" << std::endl;
+    do
+    {
+        int additionalParams = iter->second.getAdditionalParams();
+        std::cout << "\t" << iter->first;
+        std::cout << " |\t" << iter->second.getDesc() << std::endl;
+        if(additionalParams)
+        {
+            std::cout << "\t\tExpects " << additionalParams;
+            std::cout << " additional parameter";
+            std::cout << ((additionalParams == 1)?".":"s.") << std::endl;
+        }
+    } while(++iter != archEnd);
+}
 
 int main(int argc, char **argv)
 {
 	std::cout << "RRP-POC v0.2a" << std::endl;
 	std::cout << "Copyright (C) 2016 Jacob Farnsworth" << std::endl;
+    
+    std::shared_ptr<ArgParse> argParse(nullptr);
+    
+    try {
+        argParse = std::make_shared<ArgParse>(argc, argv);
+    } catch(ArgParseException e) {
+        std::cout << "ArgParseException on argument ";
+        std::cout << e.getPos() << " \"" << argv[e.getPos()] <<  "\"" << std::endl;
+        std::cout << "\t" << e.getMsg() << std::endl;
+        return 0;
+    }
 
-	if(argc != 2)
+	if(argc == 1)
 	{
-		std::cout << "Error: Invalid syntax." << std::endl;
-		std::cout << "Syntax: " << argv[0] << " <filename>" << std::endl;
+		printValidSyntax();
 		return 0; 
 	}
 
