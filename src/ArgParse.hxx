@@ -19,18 +19,35 @@ enum class ArgClass
     OUTPUT_FILE
 };
 
+/*
+ * ArgParseException class
+ * Represents an exception encountered while
+ * parsing arguments.
+ */
 class ArgParseException
 {
 public:
+	/*
+	 * Constructor
+	 * Construct the ArgParseException object.
+	 */
     explicit ArgParseException(int const i, std::string const &s)
         : _pos(i), _msg(s)
     { };
     
+	/*
+	 * getPos() function
+	 * Returns the position the exception was encountered.
+	 */
     int const getPos() const
     {
         return _pos;
     };
     
+	/*
+	 * getMsg() function
+	 * Returns the message associated with this exception.
+	 */
     std::string const getMsg() const
     {
         return _msg;
@@ -40,33 +57,66 @@ private:
     std::string _msg;
 };
 
+/*
+ * ArgArchetype class
+ * Represents an argument "archetype" - that is,
+ * encapsulates class/type of the argument, how many
+ * additional parameters it is expecting, and a string
+ * description.
+ */
 class ArgArchetype
 {
 public:
+	/*
+	 * Constructor
+	 * Construct the ArgArchetype object.
+	 */
     ArgArchetype(ArgClass const argClass,
                  int const additionalParams,
                  std::string const &szDesc)
         : _class(argClass), _params(additionalParams), _desc(szDesc)
     { };
     
+	/*
+	 * Copy constructor
+	 * Construct the ArgArchetype object from another.
+	 */
     ArgArchetype(ArgArchetype const &o)
         : _class(o._class), _params(o._params), _desc(o._desc)
     { };
     
+	/*
+	 * Constructor
+	 * Construct the ArgArchetype object.
+	 * By default, the type is INVALID.
+	 */
     ArgArchetype(void)
         : _class(ArgClass::INVALID), _params(0)
     { };
     
+	/*
+	 * getAdditionalParams() function
+	 * Returns the number of additional parameters expected
+	 * by this argument.
+	 */
     int const getAdditionalParams() const
     {
         return _params;
     };
     
+	/*
+	 * getClass() function
+	 * Returns the class/type of this argument.
+	 */
     ArgClass const getClass() const
     {
         return _class;
     };
     
+	/*
+	 * getDesc() function
+	 * Returns the string description of this exception.
+	 */
     std::string const &getDesc() const
     {
         return _desc;
@@ -78,6 +128,13 @@ private:
     std::string _desc;
 };
 
+/*
+ * ArgObject class
+ * Represents a living argument object.
+ * Encapsulates archetype, vector of additional
+ * parameters, and static mapping of argument strings
+ * to their archetypes.
+ */
 class ArgObject
 {
 public:
@@ -91,7 +148,15 @@ private:
     std::vector<std::string> params;
     
 public:
+	/*
+	 * Default constructor (deleted)
+	 */
     ArgObject() = delete;
+	
+	/*
+	 * Constructor
+	 * Construct the ArgObject object.
+	 */
     explicit ArgObject(std::string const &s)
     {
         auto argClassIter = argMap.find(s);
@@ -107,22 +172,37 @@ public:
         }
     };
     
+	/*
+	 * getArch() function
+	 * Returns the archetype associated with this argument.
+	 */
     ArgArchetype const &getArch(void) const
     {
         return arch;
     };
     
+	/*
+	 * push_param function
+	 * add the specified parameter to the additional
+	 * parameters vector
+	 */
     void push_param(std::string const &param)
     {
         params.push_back(param);
     };
     
+	/*
+	 * begin iterating the arch map
+	 */
     static auto archBegin(void)
         -> decltype(argMap.begin())
     {
         return argMap.begin();
     };
     
+	/*
+	 * end iterating the arch map
+	 */
     static auto archEnd(void)
         -> decltype(argMap.end())
     {
@@ -130,12 +210,25 @@ public:
     };
 };
 
+/*
+ * ArgParse object
+ * Presents an easy way of parsing arguments
+ * via its constructor, accepting the same parameters
+ * as main(). One may then choose to iterate the
+ * parsed arguments.
+ */
 class ArgParse
 {
 public:
     typedef std::vector<ArgObject>::iterator ArgIterator;
     
     ArgParse() = delete;
+	
+	/*
+	 * ArgParse constructor
+	 * Given raw argument data, abstract the data
+	 * into ArgObjects.
+	 */
     explicit ArgParse(int argc, char **argv)
     {
         int i = 1;
@@ -166,11 +259,17 @@ public:
         }
     };
     
+	/*
+	 * begin iterating the args
+	 */
     ArgIterator begin(void)
     {
         return _args.begin();
     };
     
+	/*
+	 * end iterating the args
+	 */
     ArgIterator end(void)
     {
         return _args.end();

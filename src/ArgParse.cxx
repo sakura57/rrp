@@ -1,5 +1,9 @@
 #include "ArgParse.hxx"
 
+/*
+ * the argMap provides mappings of argument strings
+ * to their archetypes
+ */
 const ArgObject::ArgArchMap
     ArgObject::argMap = ArgObject::ArgArchMap
     ({
