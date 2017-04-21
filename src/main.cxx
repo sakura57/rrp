@@ -37,22 +37,34 @@ int main(int argc, char **argv)
     
     try {
         argParse = std::make_shared<ArgParse>(argc, argv);
+        
+        if(argParse->hasArg(ArgClass::HELP))
+        {
+            printValidSyntax();
+            return 0; 
+        }
+        
+        argParse->verifyRequired();
     } catch(ArgParseException e) {
-        std::cout << "ArgParseException on argument ";
-        std::cout << e.getPos() << " \"" << argv[e.getPos()] <<  "\"" << std::endl;
-        std::cout << "\t" << e.getMsg() << std::endl;
+        int pos = e.getPos();
+        if(pos == -1)
+        {
+            std::cout << "ArgParseException: ";
+            std::cout << e.getMsg() << std::endl;
+        }
+        else
+        {
+            std::cout << "ArgParseException on argument ";
+            std::cout << e.getPos() << " \"" << argv[e.getPos()] <<  "\"" << std::endl;
+            std::cout << "\t" << e.getMsg() << std::endl;
+        }
         return 0;
     }
 
-	if(argc == 1)
-	{
-		printValidSyntax();
-		return 0; 
-	}
-
 	RRP::Translator t("test");
 	std::ifstream f;
-	char * filename = argv[1];
+	//char * filename = argv[1];
+    std::string filename = argParse->getFirstParam(ArgClass::INPUT_FILE);
 	f.open(filename, std::ios::binary | std::ios::in);
 	if(!f.is_open())
 	{

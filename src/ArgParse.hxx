@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 #include <unordered_map>
 #include <memory>
@@ -16,7 +17,8 @@ enum class ArgClass
     INVALID,
     VERBOSE,
     INPUT_FILE,
-    OUTPUT_FILE
+    OUTPUT_FILE,
+    HELP
 };
 
 /*
@@ -178,7 +180,12 @@ public:
 	 */
     ArgArchetype const &getArch(void) const
     {
-        return arch;
+        return this->arch;
+    };
+    
+    std::vector<std::string> const &getParams(void) const
+    {
+        return this->params;
     };
     
 	/*
@@ -221,6 +228,9 @@ class ArgParse
 {
 public:
     typedef std::vector<ArgObject>::iterator ArgIterator;
+    static const std::vector<std::string> requiredArgs;
+    
+    std::vector<std::string> _remainingRequiredArgs;
     
     ArgParse() = delete;
 	
@@ -230,18 +240,36 @@ public:
 	 * into ArgObjects.
 	 */
     explicit ArgParse(int argc, char **argv)
+        : _remainingRequiredArgs(requiredArgs)
     {
         int i = 1;
         for(; i < argc; ++i)
         {
             try {
-                ArgObject &&arg = ArgObject(argv[i]);
+                std::string argStr(argv[i]);
+                
+                //ArgObject's constructor will throw
+                //if the argument is unrecognized
+                ArgObject &&arg = ArgObject(argStr);
+                
+                if(_remainingRequiredArgs.size())
+                {
+                    auto requiredArgIter = std::find(_remainingRequiredArgs.begin(), _remainingRequiredArgs.end(), argStr);
+                    
+                    if(requiredArgIter != _remainingRequiredArgs.end())
+                    {
+                        //arg was required, remove it from the remaining
+                        //required arg vector
+                        _remainingRequiredArgs.erase(requiredArgIter);
+                    }
+                }
                 
                 ArgArchetype const &argArch = arg.getArch();
                 
                 //if the argument is expecting additional parameters
                 //make sure we handle it
                 int topArgs = i + argArch.getAdditionalParams();
+                
                 if(topArgs >= argc)
                 {
                     throw ArgParseException(-1, "Argument expected more parameters");
@@ -249,7 +277,7 @@ public:
                 
                 while(i < topArgs)
                 {
-                    arg.push_param(argv[i++]);
+                    arg.push_param(argv[++i]);
                 }
                 
                 _args.emplace_back(arg);
@@ -257,6 +285,73 @@ public:
                 throw ArgParseException(i, e.getMsg());
             }
         }
+    };
+    
+    /*
+     * throws if not all required args
+     * were supplied. ideally, call immediately after
+     * constructor
+     */
+    void verifyRequired(void)
+    {
+        if(_remainingRequiredArgs.size())
+        {
+            std::string missingArgs(_remainingRequiredArgs.back());
+            _remainingRequiredArgs.pop_back();
+            
+            for(std::string &arg : _remainingRequiredArgs)
+            {
+                missingArgs += ", " + arg;
+            }
+            
+            throw ArgParseException(-1, "Required arguments missing: " + missingArgs);
+        }
+    };
+    
+    /*
+     * returns the ArgObject
+     * for a certain class
+     */
+    ArgObject get(ArgClass const argClass)
+    {
+        for(auto &a : _args)
+        {
+            if(a.getArch().getClass() == argClass)
+            {
+                return a;
+            }
+        }
+    };
+    
+    /*
+     * simply returns true or false
+     * depending on whether the specified argument
+     * was supplied
+     */
+    bool hasArg(ArgClass const argClass)
+    {
+        for(auto &a : _args)
+        {
+            if(a.getArch().getClass() == argClass)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    };
+    
+    /*
+     * get the first additional param that
+     * was supplied for this arg.
+     * useful for args which expect
+     * only one additional param
+     */
+    std::string getFirstParam(ArgClass const argClass)
+    {
+        ArgObject o = get(argClass);
+        
+        return *(o.getParams().begin());
     };
     
 	/*
