@@ -34,12 +34,18 @@ namespace RRP
 		}
 	}
 
+	/*
+		Set the zero flag.
+	*/
 	inline void Translator::_set_z(llvm::Value *&val)
 	{
 		llvm::Value * zero = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0);
 		_irBuilder.CreateStore(_irBuilder.CreateICmpEQ(val, zero), _flag[Flag::Z]);
 	}
 
+	/*
+		Set the sign flag.
+	*/
 	inline void Translator::_set_s(llvm::Value *&val)
 	{
 		llvm::Value * neg = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(_llvmContext), 0x80);
@@ -47,6 +53,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the indirect zeropage, X-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_indirect_zeropage_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -74,6 +83,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the zero-page addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_zeropage(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -91,6 +103,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the immediate addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_immediate(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -106,12 +121,18 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Create a load of the accumulator's value.
+	*/
 	llvm::Value * Translator::_mode_read_accumulator(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		return _irBuilder.CreateLoad(_A);
 	}
 
 	//implemented
+	/*
+		Callback for the absolute addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_absolute(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -135,6 +156,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the indirect zeropage, Y-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_indirect_zeropage_indexedY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -161,6 +185,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the zeropage X-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_zeropage_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -179,6 +206,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the absolute X-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_absolute_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -203,6 +233,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the absolute Y-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_read_absolute_indexedY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -227,6 +260,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the indirect zero-page X-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_write_indirect_zeropage_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -253,6 +289,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the zeropage addressing mode.
+	*/
 	llvm::Value * Translator::_mode_write_zeropage(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -276,6 +315,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for an accumulator write.
+	*/
 	llvm::Value * Translator::_mode_write_accumulator(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		_irBuilder.CreateStore(_op, _A);
@@ -283,6 +325,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the absolute addressing mode.
+	*/
 	llvm::Value * Translator::_mode_write_absolute(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//std::cout << "write_abs" << std::endl;
@@ -307,6 +352,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the indirect zero-page Y-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_write_indirect_zeropage_indexedY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -333,6 +381,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the zeropage X-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_write_zeropage_indexedX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		if (!_immRead)
@@ -376,6 +427,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the absolute Y-indexed addressing mode.
+	*/
 	llvm::Value * Translator::_mode_write_absolute_indexedY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "abs_indxymode" << std::endl;
@@ -401,6 +455,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the ORA instruction. (logical OR)
+	*/
 	void Translator::_op_ORA(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "ORA" << std::endl;
@@ -411,6 +468,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the AND instruction. (logical AND)
+	*/
 	void Translator::_op_AND(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "AND" << std::endl;
@@ -421,6 +481,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the EOR instruction. (logical exclusive OR)
+	*/
 	void Translator::_op_EOR(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "EOR" << std::endl;
@@ -431,6 +494,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the ADC instruction. (add with carry)
+	*/
 	void Translator::_op_ADC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "ADC" << std::endl;
@@ -454,6 +520,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the STA instruction. (store accumulator)
+	*/
 	void Translator::_op_STA(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "STA" << std::endl;
@@ -462,6 +531,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the LDA instruction. (load into accumulator)
+	*/
 	void Translator::_op_LDA(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "LDA" << std::endl;
@@ -472,6 +544,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the CMP instruction. (perform a subtraction but discard the result)
+	*/
 	void Translator::_op_CMP(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "CMP" << std::endl;
@@ -494,6 +569,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the SBC instruction. (subtract with carry)
+	*/
 	void Translator::_op_SBC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "SBC" << std::endl;
@@ -517,6 +595,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the ASL instruction. (arithmetic shift left)
+	*/
 	void Translator::_op_ASL(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "ASL" << std::endl;
@@ -531,6 +612,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the ROL instruction. (rotate left)
+	*/
 	void Translator::_op_ROL(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "ROL" << std::endl;
@@ -546,6 +630,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the LSR instruction. (logical shift right)
+	*/
 	void Translator::_op_LSR(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "LSR" << std::endl;
@@ -560,6 +647,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the ROR instruction. (rotate right)
+	*/
 	void Translator::_op_ROR(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "ROR" << std::endl;
@@ -576,6 +666,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the STX instruction. (store X)
+	*/
 	void Translator::_op_STX(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "STX" << std::endl;
@@ -584,6 +677,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the LDX instruction. (load into X)
+	*/
 	void Translator::_op_LDX(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "LDX" << std::endl;
@@ -594,6 +690,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the DEC instruction. (decrement accumulator)
+	*/
 	void Translator::_op_DEC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "DEC" << std::endl;
@@ -605,6 +704,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the INC instruction. (increment accumulator)
+	*/
 	void Translator::_op_INC(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "INC" << std::endl;
@@ -616,6 +718,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the BIT instruction.
+	*/
 	void Translator::_op_BIT(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "BIT" << std::endl;
@@ -625,6 +730,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the STY instruction. (store Y)
+	*/
 	void Translator::_op_STY(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "STY" << std::endl;
@@ -633,6 +741,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the LDY instruction. (load Y)
+	*/
 	void Translator::_op_LDY(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "LDY" << std::endl;
@@ -643,6 +754,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the CPY instruction. (compare Y)
+	*/
 	void Translator::_op_CPY(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "CPY" << std::endl;
@@ -665,6 +779,9 @@ namespace RRP
 	}
 
 	//implemented
+	/*
+		Callback for the CPX instruction. (compare X)
+	*/
 	void Translator::_op_CPX(std::vector<IData> &buf, std::vector<IData>::iterator &i, AddressModeCallback &cb)
 	{
 		std::cout << "CPX" << std::endl;
@@ -782,6 +899,9 @@ namespace RRP
 		}
 	}
 
+	/*
+		Callback for the TXA instruction. (transfer X to accumulator)
+	*/
 	void Translator::_uu_TXA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "TXA" << std::endl;
@@ -791,6 +911,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _A);
 	}
 
+	/*
+		Callback for the TAX instruction. (transfer accumulator to X)
+	*/
 	void Translator::_uu_TAX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "TAX" << std::endl;
@@ -800,6 +923,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _X);
 	}
 
+	/*
+		Callback for the TYA instruction. (transfer Y to accumulator)
+	*/
 	void Translator::_uu_TYA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "TYA" << std::endl;
@@ -809,6 +935,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _A);
 	}
 
+	/*
+		Callback for the TAY instruction. (transfer accumulator to Y)
+	*/
 	void Translator::_uu_TAY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "TAY" << std::endl;
@@ -818,6 +947,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _Y);
 	}
 
+	/*
+		Callback for the TXS instruction. (transfer X to status register)
+	*/
 	void Translator::_uu_TXS(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
@@ -826,6 +958,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _S);
 	}
 
+	/*
+		Callback for the TSX instruction. (transfer status register to X)
+	*/
 	void Translator::_uu_TSX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
@@ -836,12 +971,18 @@ namespace RRP
 		_irBuilder.CreateStore(src, _X);
 	}
 
+	/*
+		Callback for the NOP instruction. (do nothing)
+	*/
 	void Translator::_uu_NOP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//dummy instruction
 		std::cout << "NOP" << std::endl;
 	}
 
+	/*
+		Callback for the PHP instruction. (push status register)
+	*/
 	void Translator::_uu_PHP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
@@ -857,6 +998,9 @@ namespace RRP
 		_irBuilder.CreateStore(decremented_sp, _S);
 	}
 
+	/*
+		Callback for the PLP instruction. (pull status register)
+	*/
 	void Translator::_uu_PLP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
@@ -872,6 +1016,9 @@ namespace RRP
 		_decompose_flags(accum);
 	}
 
+	/*
+		Callback for the PHA instruction. (push accumulator)
+	*/
 	void Translator::_uu_PHA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
@@ -886,6 +1033,9 @@ namespace RRP
 		_irBuilder.CreateStore(decremented_sp, _S);
 	}
 
+	/*
+		Callback for the PLA instruction. (pull accumulator)
+	*/
 	void Translator::_uu_PLA(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		//needs testing
@@ -903,6 +1053,9 @@ namespace RRP
 		_irBuilder.CreateStore(accum, _A);
 	}
 
+	/*
+		Callback for the INX instruction. (increment X)
+	*/
 	void Translator::_uu_INX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "INX" << std::endl;
@@ -913,6 +1066,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _X);
 	}
 
+	/*
+		Callback for the DEX instruction. (decrement X)
+	*/
 	void Translator::_uu_DEX(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "DEX" << std::endl;
@@ -923,6 +1079,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _X);
 	}
 
+	/*
+		Callback for the INY instruction. (increment Y)
+	*/
 	void Translator::_uu_INY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "INY" << std::endl;
@@ -933,6 +1092,9 @@ namespace RRP
 		_irBuilder.CreateStore(src, _Y);
 	}
 
+	/*
+		Callback for the DEY instruction. (decrement Y)
+	*/
 	void Translator::_uu_DEY(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "DEY" << std::endl;
@@ -943,60 +1105,93 @@ namespace RRP
 		_irBuilder.CreateStore(src, _Y);
 	}
 
+	/*
+		Callback for the SEC instruction. (set carry flag)
+	*/
 	void Translator::_uu_SEC(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "SEC" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::C]);
 	}
 
+	/*
+		Callback for the CLC instruction. (clear carry flag)
+	*/
 	void Translator::_uu_CLC(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "CLC" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::C]);
 	}
 
+	/*
+		Callback for the SED instruction. (set decimal flag)
+	*/
 	void Translator::_uu_SED(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "SED" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::D]);
 	}
 
+	/*
+		Callback for the CLD instruction. (clear decimal flag)
+	*/
 	void Translator::_uu_CLD(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "CLD" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::D]);
 	}
 
+	/*
+		Callback for the SEV instruction. (set overflow flag)
+	*/
 	void Translator::_uu_SEV(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "SEV" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::V]);
 	}
 
+	/*
+		Callback for the CLV instruction. (clear overflow flag)
+	*/
 	void Translator::_uu_CLV(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "CLV" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::V]);
 	}
 
+	/*
+		Callback for the SEI instruction. (set interrupt flag)
+	*/
 	void Translator::_uu_SEI(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "SEI" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 1)), _flag[Flag::I]);
 	}
 
+	/*
+		Callback for the CLI instruction. (clear interrupt flag)
+	*/
 	void Translator::_uu_CLI(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "CLI" << std::endl;
 		_irBuilder.CreateStore(llvm::ConstantInt::get(_llvmContext, llvm::APInt(1, 0)), _flag[Flag::I]);
 	}
 
+	/*
+		Callback for an indirect JMP instruction.
+		
+		Currently throws an exception because indirect JMPs
+		are unsupported.
+	*/
 	void Translator::_uu_IJMP(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "IJMP" << std::endl;
 		throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
 	}
 
+	/*
+		Callback for the JSR instruction. (jump to subroutine)
+	*/
 	void Translator::_uu_JSR(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "JSR" << std::endl;
@@ -1030,6 +1225,9 @@ namespace RRP
 		}
 	}
 
+	/*
+		Callback for the RTS instruction. (return from subroutine)
+	*/
 	void Translator::_uu_RTS(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "RTS" << std::endl;
@@ -1063,12 +1261,20 @@ namespace RRP
 		_needsBr = false;
 	}
 
+	/*
+		Callback for the RTI instruction. (return from interrupt)
+		
+		Currently unsupported. Throws an exception.
+	*/
 	void Translator::_uu_RTI(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "RTI" << std::endl;
 		throw Exception(ExceptionCode::UNSUPPORTED_INSTRUCTION, std::get<1>(*i));
 	}
 
+	/*
+		Callback for the various branch instructions.
+	*/
 	void Translator::_uu_bra(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "branch: ";
@@ -1117,6 +1323,9 @@ namespace RRP
 		}
 	}
 
+	/*
+		Callback for the JMP instruction. (jump)
+	*/
 	void Translator::_uu_jump(std::vector<IData> &buf, std::vector<IData>::iterator &i)
 	{
 		std::cout << "JMP" << std::endl;
